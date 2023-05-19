@@ -1,11 +1,17 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy import Table, Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship, declarative_base, backref
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
 Base = declarative_base()
+
+followers = Table('followers',
+    Base.metadata,
+    Column('user_from_id', Integer, ForeignKey('user.id'), primary_key=True),
+    Column('user_to_id', Integer, ForeignKey('user.id'), primary_key=True)
+)
 
 class User(Base):
     __tablename__ = 'user'
@@ -15,16 +21,16 @@ class User(Base):
     firstname = Column(String(250), nullable=False)
     lastname = Column(String(250), nullable=False)
     email = Column(String(250), unique=True, nullable=False)
+    followers = relationship('Follower', secondary=followers, lazy='subquery',
+        backref=backref('user', lazy=True))
 
 class Follower(Base):
     __tablename__ = 'follower'
     # Here we define columns for the table person
     # Notice that each column is also a normal Python instance attribute.
     id = Column(Integer, primary_key=True)
-    user_follower = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
-    user_followed = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
+    # user_follower = Column(Integer, ForeignKey('user.id'))
+    # user = relationship(User)
 
 class Post(Base):
     __tablename__ = 'post'
